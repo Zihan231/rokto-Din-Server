@@ -12,20 +12,26 @@ export class Donor {
   @Column({ type: 'varchar', unique: true })
   email: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  fullName: string;
+
+  @Column({ type: 'varchar', nullable: false })
+  password: string;
+
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: Division,
   })
   division: string;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: District,
   })
   district: string;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: BloodGroup,
   })
   bloodGroup: string;

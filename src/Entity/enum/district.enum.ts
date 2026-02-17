@@ -41,7 +41,7 @@ export enum District {
   MYMENSINGH = 'Mymensingh',
   NAOGAON = 'Naogaon',
   NARAIL = 'Narail',
-  NARAYANGANJ = 'Narayanganj', // Added
+  NARAYANGANJ = 'Narayanganj',
   NARSINGDI = 'Narsingdi',
   NATORE = 'Natore',
   NETROKONA = 'Netrokona',
