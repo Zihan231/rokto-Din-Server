@@ -10,5 +10,6 @@ import { Contact } from 'src/Entity/contact.entity';
   imports: [TypeOrmModule.forFeature([Donor, Record, Contact])],
   controllers: [DonorController],
   providers: [DonorService],
+  exports: [DonorService],
 })
 export class DonorModule {}
