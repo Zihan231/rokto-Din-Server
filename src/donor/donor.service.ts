@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -94,17 +95,75 @@ export class DonorService {
       donationDate: recordData.donationDate,
       hospitalName: recordData.hospitalName,
       unitsDonated: recordData.unitsDonated,
-      donor: donor, // link to donor
+      donor: donor,
     });
 
-    // 3️⃣ Save to DB
+    // 3️⃣ Save the Donation Record
     const savedRecord = await this.recordRepo.save(newRecord);
 
-    // 4️⃣ Return response (status code 201)
+    // 4️⃣ Update Donor's Total Donation Count (+1) & Save
+    donor.totalDonation = (donor.totalDonation || 0) + 1;
+
+    donor.lastDonation = recordData.donationDate;
+
+    await this.donorRepo.save(donor);
+
+    // 5️⃣ Return response
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Donation record created successfully',
       data: savedRecord,
+    };
+  }
+
+  // See Profile
+  async getProfile(donorId: number): Promise<object> {
+    const donor = await this.donorRepo.findOne({ where: { id: donorId } });
+    if (!donor) {
+      throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
+    }
+    return {
+      statusCode: HttpStatus.OK,
+      data: donor,
+    };
+  }
+  // see donation record
+  async getDonationRecords(donorId: number, query): Promise<object> {
+    const { limit = 8, page = 1, hospitalName } = query;
+
+    // 1️⃣ Check donor exists
+    const donorExist = await this.donorRepo.findOne({ where: { id: donorId } });
+    if (!donorExist) {
+      throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // 2️⃣ Build query
+    const qb = this.recordRepo
+      .createQueryBuilder('record')
+      .where('record.donorId = :donorId', { donorId });
+
+    // 3️⃣ Optional hospital name filter (partial match, case-insensitive)
+    if (hospitalName) {
+      qb.andWhere('LOWER(record.hospitalName) LIKE LOWER(:hospitalName)', {
+        hospitalName: `%${hospitalName}%`,
+      });
+    }
+
+    // 4️⃣ Pagination
+    qb.skip(skip).take(Number(limit));
+
+    const [records, total] = await qb.getManyAndCount();
+
+    return {
+      data: records,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit)),
+      },
     };
   }
 }

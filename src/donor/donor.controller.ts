@@ -1,16 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Body,
   Controller,
   Get,
-  Param,
-  ParseIntPipe,
   Post,
+  Query,
+  Req,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { DonorService } from './donor.service';
 import { CreateDonorDto } from 'src/dto/createDonor.dto';
 import { donationRecordDto } from 'src/dto/donationRecord.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('donor')
 export class DonorController {
@@ -28,12 +32,33 @@ export class DonorController {
   }
   // create donation record
 
-  @Post(':donorId/donation-record')
+  @Post('create-donation-record')
+  @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
   createDonationRecord(
-    @Param('donorId', ParseIntPipe) donorId: number,
     @Body() recordData: donationRecordDto,
+    @Req() req: Request,
   ) {
+    const donorId: number = req['user'].id;
     return this.donorService.createDonationRecord(donorId, recordData);
+  }
+
+  // Donor profile
+  @Get('profile')
+  @UseGuards(AuthGuard)
+  getProfile(@Req() req: Request) {
+    const donorId: number = req['user'].id;
+    return this.donorService.getProfile(donorId);
+  }
+
+  // See Donation Record
+  @Get('donation-records')
+  @UseGuards(AuthGuard)
+  getDonationRecords(
+    @Req() req: Request,
+    @Query() query: { limit: number; page: number; hospitalName: string },
+  ) {
+    const donorId: number = req['user'].id;
+    return this.donorService.getDonationRecords(donorId, query);
   }
 }

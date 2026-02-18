@@ -59,13 +59,13 @@ export class CreateDonorDto {
   })
   phoneNumber: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^(\+8801|01)[3-9]\d{8}$/, {
     message: 'Phone number must be a valid Bangladeshi number',
   })
   whatsappNumber: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^(https?:\/\/)?(www\.)?facebook\.com\/[a-zA-Z0-9(.?)?]/, {
     message: 'Must be a valid Facebook profile or page URL',
   })

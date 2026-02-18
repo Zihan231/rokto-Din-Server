@@ -17,6 +17,16 @@ export class AuthService {
   async login(data: LoginDto): Promise<{ token: string }> {
     const userExist = await this.donorRepo.findOne({
       where: { email: data.email },
+      select: [
+        'id',
+        'email',
+        'fullName',
+        'password',
+        'totalDonation',
+        'lastDonation',
+        'donationStatus',
+        'bloodGroup',
+      ],
     });
     if (!userExist) {
       throw new HttpException(
@@ -35,9 +45,13 @@ export class AuthService {
       );
     } else {
       const payload = {
-        email: userExist.email,
         id: userExist.id,
-        name: userExist.fullName,
+        email: userExist.email,
+        fullName: userExist.fullName,
+        totalDonation: userExist.totalDonation,
+        lastDonation: userExist.lastDonation,
+        donationStatus: userExist.donationStatus,
+        bloodGroup: userExist.bloodGroup,
       };
       return {
         token: await this.jwtService.signAsync(payload),

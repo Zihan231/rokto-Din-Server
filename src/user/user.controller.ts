@@ -10,6 +10,7 @@ import {
 import { userService } from './user.service';
 import { ContactUsDto } from 'src/dto/contactUs.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { SearchDto } from 'src/dto/search.dto';
 
 @Controller('user')
 export class userController {
@@ -25,5 +26,12 @@ export class userController {
   @UsePipes(new ValidationPipe())
   contactUs(@Body() contactData: ContactUsDto) {
     return this.userService.contactUs(contactData);
+  }
+
+  // search functionality
+  @Get('search')
+  @UsePipes(new ValidationPipe())
+  search(@Body() query: SearchDto) {
+    return this.userService.search(query);
   }
 }

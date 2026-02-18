@@ -15,7 +15,7 @@ export class Donor {
   @Column({ type: 'varchar', length: 255, nullable: false })
   fullName: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, select: false })
   password: string;
 
   @Column({
