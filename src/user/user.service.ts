@@ -6,6 +6,7 @@ import { ContactUsDto } from 'src/dto/contactUs.dto';
 import { SearchDto } from 'src/dto/search.dto';
 import { Contact } from 'src/Entity/contact.entity';
 import { Donor } from 'src/Entity/donor.entity';
+import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class userService {
     private contactRepo: Repository<Contact>,
     @InjectRepository(Donor)
     private donorRepo: Repository<Donor>,
+    private readonly mailService: MailService,
   ) {}
   test() {
     return 'This is user service';
@@ -32,6 +34,13 @@ export class userService {
 
     // 2️⃣ Save to database
     await this.contactRepo.save(newContact);
+
+    // Send Message to Admin
+    try {
+      await this.mailService.sendContactMail(contactData);
+    } catch {
+      console.log('Email failed but contact saved.');
+    }
 
     // 3️⃣ Return proper response
     return {
