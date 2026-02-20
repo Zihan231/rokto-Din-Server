@@ -1,10 +1,6 @@
 import {
-  IsDateString,
   IsEmail,
   IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Length,
@@ -14,42 +10,33 @@ import { BloodGroup } from 'src/Entity/enum/bloodGroup.enum';
 import { District } from 'src/Entity/enum/district.enum';
 import { Division } from 'src/Entity/enum/division.enum';
 
-export class CreateDonorDto {
-  @IsNotEmpty({ message: 'Email can not be empty' })
+export class editProfileDto {
+  @IsOptional()
   @IsEmail()
   @IsString()
   email: string;
 
-  @IsNotEmpty({ message: 'Full name can not be empty' })
+  @IsOptional()
   @IsString()
   @Length(3, 255, { message: 'Full name must be between 3 and 255 characters' })
   fullName: string;
 
-  @IsNotEmpty({ message: 'Password can not be empty' })
-  @IsString()
-  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])/, {
-    message:
-      'Password must contain at least one uppercase letter, one lowercase letter, and one special character',
-  })
-  password: string;
-
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(Division)
   division: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(District)
   district: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsEnum(BloodGroup)
   bloodGroup: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^(\+8801|01)[3-9]\d{8}$/, {
     message: 'Phone number must be a valid Bangladeshi number',
   })
@@ -66,21 +53,4 @@ export class CreateDonorDto {
     message: 'Must be a valid Facebook profile or page URL',
   })
   facebookLink: string;
-
-  @IsOptional()
-  @IsDateString(
-    {},
-    { message: 'lastDonation must be a valid date string (YYYY-MM-DD)' },
-  )
-  lastDonation: string;
-
-  @IsOptional()
-  @IsIn(['onn', 'off'], {
-    message: 'donationStatus must be either "onn" or "off"',
-  })
-  donationStatus: string = 'onn';
-
-  @IsOptional()
-  @IsNumber()
-  totalDonation: number = 0;
 }

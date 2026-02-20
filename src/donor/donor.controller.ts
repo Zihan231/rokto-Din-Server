@@ -15,6 +15,7 @@ import { DonorService } from './donor.service';
 import { CreateDonorDto } from 'src/dto/createDonor.dto';
 import { donationRecordDto } from 'src/dto/donationRecord.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { editProfileDto } from 'src/dto/editProfile.dto';
 
 @Controller('donor')
 export class DonorController {
@@ -60,5 +61,14 @@ export class DonorController {
   ) {
     const donorId: number = req['user'].id;
     return this.donorService.getDonationRecords(donorId, query);
+  }
+
+  // edit profile
+  @Post('edit-profile')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe())
+  editProfile(@Body() inputData: editProfileDto, @Req() req: Request) {
+    const donorId: number = req['user'].id;
+    return this.donorService.editProfile(donorId, inputData);
   }
 }

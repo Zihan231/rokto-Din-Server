@@ -11,6 +11,7 @@ import { divisionDistrictMap } from 'src/Entity/divisionDistrictMap';
 import * as bcrypt from 'bcrypt';
 import { donationRecordDto } from 'src/dto/donationRecord.dto';
 import { Record } from 'src/Entity/record.entity';
+import { editProfileDto } from 'src/dto/editProfile.dto';
 
 @Injectable()
 export class DonorService {
@@ -163,6 +164,59 @@ export class DonorService {
         page: Number(page),
         limit: Number(limit),
         totalPages: Math.ceil(total / Number(limit)),
+      },
+    };
+  }
+
+  // Edit Profile
+  async editProfile(donorId: number, data: editProfileDto): Promise<object> {
+    // 🚫 0️⃣ Check if body is empty
+    if (!data || Object.keys(data).length === 0) {
+      throw new HttpException(
+        'No data provided to update',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // 1️⃣ Find donor
+    const donor = await this.donorRepo.findOne({
+      where: { id: donorId },
+    });
+
+    if (!donor) {
+      throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
+    }
+
+    // 2️⃣ Prevent duplicate email
+    if (data.email && data.email !== donor.email) {
+      const emailExist = await this.donorRepo.findOne({
+        where: { email: data.email },
+      });
+
+      if (emailExist) {
+        throw new HttpException('Email already in use', HttpStatus.CONFLICT);
+      }
+    }
+
+    // 3️⃣ Update only provided fields
+    Object.assign(donor, data);
+
+    // 4️⃣ Save
+    const updatedDonor = await this.donorRepo.save(donor);
+
+    // 5️⃣ Response
+    return {
+      message: 'Profile updated successfully',
+      data: {
+        id: updatedDonor.id,
+        fullName: updatedDonor.fullName,
+        email: updatedDonor.email,
+        division: updatedDonor.division,
+        district: updatedDonor.district,
+        bloodGroup: updatedDonor.bloodGroup,
+        phoneNumber: updatedDonor.phoneNumber,
+        whatsappNumber: updatedDonor.whatsappNumber,
+        facebookLink: updatedDonor.facebookLink,
       },
     };
   }

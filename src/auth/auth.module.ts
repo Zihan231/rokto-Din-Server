@@ -7,10 +7,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Donor } from 'src/Entity/donor.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     DonorModule,
+    MailModule,
     TypeOrmModule.forFeature([Donor]),
     JwtModule.registerAsync({
       global: true,
