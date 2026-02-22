@@ -11,6 +11,7 @@ import { changePassDto } from 'src/dto/changePass.dto';
 import { forgotPassDto } from 'src/dto/forgotPass.dto';
 import { MailService } from 'src/mail/mail.service';
 import { ResetPasswordDto } from 'src/dto/ResetPassword.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +21,8 @@ export class AuthService {
     private donorRepo: Repository<Donor>,
     private readonly mailService: MailService,
   ) {}
-  // login method
-  async login(data: LoginDto): Promise<{ token: string }> {
+  // login
+  async login(data: LoginDto, res: Response): Promise<void> {
     const userExist = await this.donorRepo.findOne({
       where: { email: data.email },
       select: [
@@ -60,9 +61,15 @@ export class AuthService {
         donationStatus: userExist.donationStatus,
         bloodGroup: userExist.bloodGroup,
       };
-      return {
-        token: await this.jwtService.signAsync(payload),
-      };
+      const token = await this.jwtService.signAsync(payload);
+      // httpOnly
+      res.cookie('jwt', token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 60 * 24,
+      });
+      res.json({ message: 'Login Successful' });
     }
   }
 

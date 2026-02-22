@@ -5,6 +5,7 @@ import {
   Controller,
   Post,
   Req,
+  Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -15,6 +16,7 @@ import { changePassDto } from 'src/dto/changePass.dto';
 import { AuthGuard } from './auth.guard';
 import { forgotPassDto } from 'src/dto/forgotPass.dto';
 import { ResetPasswordDto } from 'src/dto/ResetPassword.dto';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -23,8 +25,8 @@ export class AuthController {
   // Login
   @Post('login')
   @UsePipes(new ValidationPipe())
-  login(@Body() loginData: LoginDto) {
-    return this.authService.login(loginData);
+  login(@Body() loginData: LoginDto, @Res() res: Response) {
+    return this.authService.login(loginData, res);
   }
 
   // change password
