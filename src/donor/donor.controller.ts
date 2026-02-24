@@ -31,8 +31,8 @@ export class DonorController {
   createDonor(@Body() donorData: CreateDonorDto) {
     return this.donorService.createDonor(donorData);
   }
-  // create donation record
 
+  // create donation record
   @Post('create-donation-record')
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())

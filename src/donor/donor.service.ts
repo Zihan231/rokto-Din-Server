@@ -38,6 +38,15 @@ export class DonorService {
       );
     }
 
+    // 1.5️⃣  VALIDATION: Check for at least one contact method
+    // We check if all three are falsy (null, undefined, or empty string)
+    if (!data.phoneNumber && !data.whatsappNumber && !data.facebookLink) {
+      throw new HttpException(
+        'You must provide at least one contact method (Phone, WhatsApp, or Facebook).',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     // 2️⃣ Check division → district
     if (!divisionDistrictMap[data.division]?.includes(data.district)) {
       throw new HttpException(
@@ -52,6 +61,7 @@ export class DonorService {
 
     // 4️⃣ Create donor entity
     const newDonor = this.donorRepo.create({
+      // ... rest of your code ...
       fullName: data.fullName,
       email: data.email,
       password: hashedPassword,
@@ -72,7 +82,7 @@ export class DonorService {
     // 6️⃣ Remove password before returning
     const { password, ...donorWithoutPassword } = savedDonor;
 
-    // 7️⃣ Return response with proper status code
+    // 7️⃣ Return response
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Donor created successfully',

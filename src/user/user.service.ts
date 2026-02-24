@@ -8,7 +8,7 @@ import { Contact } from 'src/Entity/contact.entity';
 import { Donor } from 'src/Entity/donor.entity';
 import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
-
+import { LessThanOrEqual, IsNull } from 'typeorm';
 @Injectable()
 export class userService {
   constructor(
@@ -49,24 +49,40 @@ export class userService {
       data: newContact,
     };
   }
-  // search Donor
+
   async search(query: SearchDto): Promise<object> {
     const { bloodGroup, division, district, limit = 8, page = 1 } = query;
-    const filters: any = { bloodGroup };
+
+    // 1. Calculate the cutoff date (Today - 2 months)
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+    const dateString = twoMonthsAgo.toISOString().split('T')[0];
+
+    // 2. Build Base Filters (Common conditions)
+    const baseFilters: any = {
+      bloodGroup,
+      donationStatus: 'onn', // Active donors only
+    };
 
     if (division) {
-      filters.division = division;
+      baseFilters.division = division;
     }
     if (district) {
-      filters.district = district;
+      baseFilters.district = district;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
 
+    // 3. Use an Array for 'where' to create an OR condition
+    // Logic: (BaseFilters AND Date <= 2 Months) OR (BaseFilters AND Date IS NULL)
     const [donors, total] = await this.donorRepo.findAndCount({
-      where: filters,
+      where: [
+        { ...baseFilters, lastDonation: LessThanOrEqual(dateString) }, // Eligible by time
+        { ...baseFilters, lastDonation: IsNull() }, // New donor (never donated)
+      ],
       skip: skip,
       take: Number(limit),
+      order: { lastDonation: 'ASC' },
     });
 
     return {

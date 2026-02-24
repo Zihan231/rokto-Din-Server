@@ -29,7 +29,7 @@ export class userController {
   }
 
   // search functionality
-  @Get('search')
+  @Post('search')
   @UsePipes(new ValidationPipe())
   search(@Body() query: SearchDto) {
     return this.userService.search(query);
