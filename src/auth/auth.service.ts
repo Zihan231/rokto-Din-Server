@@ -67,7 +67,7 @@ export class AuthService {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60,
       });
       res.json({ message: 'Login Successful' });
     }

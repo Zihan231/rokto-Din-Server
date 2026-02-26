@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CanActivate,
@@ -14,7 +15,8 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    // Read token from cookie
+    const token = request.cookies?.jwt;
     if (!token) {
       throw new UnauthorizedException('Unauthorized Access');
     }

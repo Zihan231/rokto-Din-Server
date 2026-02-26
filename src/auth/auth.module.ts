@@ -21,7 +21,6 @@ import { MailModule } from 'src/mail/mail.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          // FIX: Cast to 'any' or 'string | number' to satisfy the type checker
           expiresIn: configService.get('JWT_EXPIRES'), 
         },
       }),
