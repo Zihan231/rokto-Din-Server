@@ -3,6 +3,7 @@
 import {
   Body,
   Controller,
+  HttpStatus,
   Post,
   Req,
   Res,
@@ -45,9 +46,26 @@ export class AuthController {
     return this.authService.forgotPassword(data);
   }
 
+  // reset password
   @Post('reset-password')
   @UsePipes(new ValidationPipe())
   resetPass(@Body() data: ResetPasswordDto) {
     return this.authService.resetPassword(data);
+  }
+  // logout
+  @Post('logout')
+  logout(@Res() res: Response) {
+    // 1. Clear the cookie using the exact same options from your login method
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    });
+
+    // 2. Send a proper 200 OK status code along with a structured JSON message
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      message: 'Successfully logged out',
+    });
   }
 }
