@@ -126,27 +126,27 @@ export class AuthService {
   async forgotPassword(data: forgotPassDto): Promise<object> {
     const { email } = data;
 
-    // 1️⃣ Find user
+    // 1️⃣ Find user (Make sure to select 'password' now)
     const user = await this.donorRepo.findOne({
       where: { email },
-      select: ['id', 'email'], // make sure email and id are selected
+      select: ['id', 'email', 'password'], // 👈 Added 'password'
     });
 
     if (!user) {
-      // Don't reveal if email exists or not for security
       return { message: 'If this email exists, a reset link has been sent' };
     }
 
-    // 2️⃣ Generate short-lived JWT reset token
+    // 2️⃣ Create a dynamic secret unique to this user's current password state
+    const dynamicSecret = process.env.JWT_RESET_SECRET + user.password;
+
+    // 3️⃣ Generate short-lived JWT reset token using the dynamic secret
     const resetToken = this.jwtService.sign(
       { id: user.id },
-      { secret: process.env.JWT_RESET_SECRET, expiresIn: '5m' },
+      { secret: dynamicSecret, expiresIn: '5m' }, // 👈 Use dynamicSecret
     );
 
-    // 3️⃣ Build reset link
+    // 4️⃣ Build reset link & Send email
     const resetLink = `http://localhost:3001/reset-password?token=${resetToken}`;
-
-    // 4️⃣ Send email
     await this.mailService.sendResetEmail(user.email, resetLink);
 
     return { message: 'If this email exists, a reset link has been sent' };
@@ -160,11 +160,34 @@ export class AuthService {
       throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
     }
 
-    let payload: any;
+    // 1️⃣ Decode the token WITHOUT verifying to get the user ID
+    const decoded: any = this.jwtService.decode(token);
+
+    if (!decoded || !decoded.id) {
+      throw new HttpException('Invalid token format', HttpStatus.BAD_REQUEST);
+    }
+
+    // 2️⃣ Fetch the user from the database
+    const user = await this.donorRepo.findOne({
+      where: { id: decoded.id },
+      select: ['id', 'email', 'password'], // Need the current password to verify
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'Invalid or expired token',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // 3️⃣ Reconstruct the dynamic secret using their CURRENT password
+    const dynamicSecret = process.env.JWT_RESET_SECRET + user.password;
 
     try {
-      payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_RESET_SECRET,
+      // 4️⃣ Verify the token. If they already changed their password,
+      // user.password will be different, the secret will be wrong, and this will fail!
+      this.jwtService.verify(token, {
+        secret: dynamicSecret,
       });
     } catch {
       throw new HttpException(
@@ -173,20 +196,14 @@ export class AuthService {
       );
     }
 
-    const user = await this.donorRepo.findOne({
-      where: { id: payload.id },
-    });
-
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    // Hash the new password and save it
+    // 5️⃣ Hash the new password and save it
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(newPassword, salt);
+
     user.password = hashedPassword;
     await this.donorRepo.save(user);
 
+    // 6️⃣ Send Success Email
     try {
       await this.mailService.sendPasswordChangeSuccessEmail(user.email);
     } catch (error) {

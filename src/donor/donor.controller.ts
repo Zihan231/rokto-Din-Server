@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -57,7 +58,13 @@ export class DonorController {
   @UseGuards(AuthGuard)
   getDonationRecords(
     @Req() req: Request,
-    @Query() query: { limit: number; page: number; hospitalName: string },
+    @Query()
+    query: {
+      limit?: number;
+      page?: number;
+      hospitalName?: string;
+      sort?: string;
+    },
   ) {
     const donorId: number = req['user'].id;
     return this.donorService.getDonationRecords(donorId, query);
@@ -70,5 +77,13 @@ export class DonorController {
   editProfile(@Body() inputData: editProfileDto, @Req() req: Request) {
     const donorId: number = req['user'].id;
     return this.donorService.editProfile(donorId, inputData);
+  }
+
+  // Update donation status
+  @Patch('update-status')
+  @UseGuards(AuthGuard)
+  updateStatus(@Query('status') input: 'onn' | 'off', @Req() req: Request) {
+    const donorId: number = req['user'].id;
+    return this.donorService.UpdateDonationStatus(donorId, input);
   }
 }

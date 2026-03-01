@@ -138,11 +138,13 @@ export class DonorService {
       data: donor,
     };
   }
+
   // see donation record
   async getDonationRecords(donorId: number, query): Promise<object> {
-    const { limit = 8, page = 1, hospitalName } = query;
+    // 1️⃣ Extract sort, default it to 'desc' (Newest first)
+    const { limit = 8, page = 1, hospitalName, sort = 'desc' } = query;
 
-    // 1️⃣ Check donor exists
+    // Check donor exists
     const donorExist = await this.donorRepo.findOne({ where: { id: donorId } });
     if (!donorExist) {
       throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
@@ -150,19 +152,26 @@ export class DonorService {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    // 2️⃣ Build query
+    // Build query
     const qb = this.recordRepo
       .createQueryBuilder('record')
       .where('record.donorId = :donorId', { donorId });
 
-    // 3️⃣ Optional hospital name filter (partial match, case-insensitive)
+    // Optional hospital name filter
     if (hospitalName) {
       qb.andWhere('LOWER(record.hospitalName) LIKE LOWER(:hospitalName)', {
         hospitalName: `%${hospitalName}%`,
       });
     }
 
-    // 4️⃣ Pagination
+    // 2️⃣ Apply Sorting strictly by donationDate
+    // Normalize to uppercase 'ASC' (Oldest first) or 'DESC' (Newest first)
+    const orderDirection = sort.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+    // 🔥 FIX: Order ONLY by donationDate
+    qb.orderBy('record.donationDate', orderDirection);
+
+    // Pagination
     qb.skip(skip).take(Number(limit));
 
     const [records, total] = await qb.getManyAndCount();
@@ -228,6 +237,43 @@ export class DonorService {
         whatsappNumber: updatedDonor.whatsappNumber,
         facebookLink: updatedDonor.facebookLink,
       },
+    };
+  }
+
+  // change donation status
+  async UpdateDonationStatus(
+    donorId: number,
+    data: 'onn' | 'off',
+  ): Promise<object> {
+    // 🚫 0️⃣ Check if data is valid
+    if (data !== 'onn' && data !== 'off') {
+      throw new HttpException(
+        'Invalid status provided. Must be "onn" or "off"',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // 1️⃣ Find donor
+    const donor = await this.donorRepo.findOne({
+      where: { id: donorId },
+    });
+
+    if (!donor) {
+      throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
+    }
+
+    // 2️⃣ Update the status
+    donor.donationStatus = data;
+
+    // 3️⃣ Save the updated donor back to the database
+    await this.donorRepo.save(donor);
+
+    // 4️⃣ Return a clear success response
+    return {
+      success: true,
+      message: `Donor availability updated to ${data.toUpperCase()}`,
+      donorId: donor.id,
+      currentStatus: donor.donationStatus,
     };
   }
 }
