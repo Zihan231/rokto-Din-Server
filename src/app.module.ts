@@ -16,13 +16,12 @@ import { MailModule } from './mail/mail.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
+        url: configService.get<string>('DATABASE_URL'), // Use DATABASE_URL only
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true, // optional: set false in production
+        ssl: {
+          rejectUnauthorized: false, // required for Render free DB
+        },
       }),
     }),
     DonorModule,
