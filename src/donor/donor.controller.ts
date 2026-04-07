@@ -13,10 +13,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { DonorService } from './donor.service';
-import { CreateDonorDto } from 'src/dto/createDonor.dto';
-import { donationRecordDto } from 'src/dto/donationRecord.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { editProfileDto } from 'src/dto/editProfile.dto';
+import { CreateDonorDto } from '../dto/createDonor.dto';
+import { donationRecordDto } from '../dto/donationRecord.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { editProfileDto } from '../dto/editProfile.dto';
 
 @Controller('donor')
 export class DonorController {

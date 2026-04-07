@@ -4,14 +4,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateDonorDto } from 'src/dto/createDonor.dto';
-import { Donor } from 'src/Entity/donor.entity';
+import { CreateDonorDto } from '../dto/createDonor.dto';
+import { Donor } from '../Entity/donor.entity';
 import { Repository } from 'typeorm';
-import { divisionDistrictMap } from 'src/Entity/divisionDistrictMap';
+import { divisionDistrictMap } from '../Entity/divisionDistrictMap';
 import * as bcrypt from 'bcrypt';
-import { donationRecordDto } from 'src/dto/donationRecord.dto';
-import { Record } from 'src/Entity/record.entity';
-import { editProfileDto } from 'src/dto/editProfile.dto';
+import { donationRecordDto } from '../dto/donationRecord.dto';
+import { Record } from '../Entity/record.entity';
+import { editProfileDto } from '../dto/editProfile.dto';
 
 @Injectable()
 export class DonorService {
