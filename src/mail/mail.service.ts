@@ -4,7 +4,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { ContactUsDto } from 'src/dto/contactUs.dto';
+import { ContactUsDto } from '../dto/contactUs.dto';
 
 @Injectable()
 export class MailService {

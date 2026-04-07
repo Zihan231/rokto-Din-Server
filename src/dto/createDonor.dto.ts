@@ -10,9 +10,9 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import { BloodGroup } from 'src/Entity/enum/bloodGroup.enum';
-import { District } from 'src/Entity/enum/district.enum';
-import { Division } from 'src/Entity/enum/division.enum';
+import { BloodGroup } from '../Entity/enum/bloodGroup.enum';
+import { District } from '../Entity/enum/district.enum';
+import { Division } from '../Entity/enum/division.enum';
 
 export class CreateDonorDto {
   @IsNotEmpty({ message: 'Email can not be empty' })

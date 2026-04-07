@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ContactUsDto } from 'src/dto/contactUs.dto';
-import { SearchDto } from 'src/dto/search.dto';
-import { Contact } from 'src/Entity/contact.entity';
-import { Donor } from 'src/Entity/donor.entity';
-import { MailService } from 'src/mail/mail.service';
+import { ContactUsDto } from '../dto/contactUs.dto';
+import { SearchDto } from '../dto/search.dto';
+import { Contact } from '../Entity/contact.entity';
+import { Donor } from '../Entity/donor.entity';
+import { MailService } from '../mail/mail.service';
 import { Repository } from 'typeorm';
 import { LessThanOrEqual, IsNull } from 'typeorm';
 @Injectable()

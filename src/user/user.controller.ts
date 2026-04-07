@@ -3,14 +3,12 @@ import {
   Controller,
   Get,
   Post,
-  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { userService } from './user.service';
-import { ContactUsDto } from 'src/dto/contactUs.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { SearchDto } from 'src/dto/search.dto';
+import { ContactUsDto } from '../dto/contactUs.dto';
+import { SearchDto } from '../dto/search.dto';
 
 @Controller('user')
 export class userController {

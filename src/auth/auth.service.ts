@@ -3,14 +3,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginDto } from 'src/dto/login.dto';
-import { Donor } from 'src/Entity/donor.entity';
+import { LoginDto } from '../dto/login.dto';
+import { Donor } from '../Entity/donor.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { changePassDto } from 'src/dto/changePass.dto';
-import { forgotPassDto } from 'src/dto/forgotPass.dto';
-import { MailService } from 'src/mail/mail.service';
-import { ResetPasswordDto } from 'src/dto/ResetPassword.dto';
+import { changePassDto } from '../dto/changePass.dto';
+import { forgotPassDto } from '../dto/forgotPass.dto';
+import { MailService } from '../mail/mail.service';
+import { ResetPasswordDto } from '../dto/ResetPassword.dto';
 import { Response } from 'express';
 
 @Injectable()

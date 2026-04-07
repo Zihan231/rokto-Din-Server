@@ -12,11 +12,11 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from 'src/dto/login.dto';
-import { changePassDto } from 'src/dto/changePass.dto';
+import { LoginDto } from '../dto/login.dto';
+import { changePassDto } from '../dto/changePass.dto';
 import { AuthGuard } from './auth.guard';
-import { forgotPassDto } from 'src/dto/forgotPass.dto';
-import { ResetPasswordDto } from 'src/dto/ResetPassword.dto';
+import { forgotPassDto } from '../dto/forgotPass.dto';
+import { ResetPasswordDto } from '../dto/ResetPassword.dto';
 import type { Response } from 'express';
 
 @Controller('auth')

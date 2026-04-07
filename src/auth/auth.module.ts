@@ -2,12 +2,12 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { DonorModule } from 'src/donor/donor.module';
+import { DonorModule } from '../donor/donor.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Donor } from 'src/Entity/donor.entity';
+import { Donor } from '../Entity/donor.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailModule } from 'src/mail/mail.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
