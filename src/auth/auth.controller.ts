@@ -58,8 +58,9 @@ export class AuthController {
     // 1. Clear the cookie using the exact same options from your login method
     res.clearCookie('jwt', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
+      path: '/',
     });
 
     // 2. Send a proper 200 OK status code along with a structured JSON message
