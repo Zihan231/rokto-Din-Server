@@ -19,7 +19,7 @@ export class userService {
     private readonly mailService: MailService,
   ) {}
   test() {
-    return 'This is user service';
+    return 'User Service is working!';
   }
   // contact us
   async contactUs(contactData: ContactUsDto): Promise<object> {

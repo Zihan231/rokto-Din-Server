@@ -16,7 +16,7 @@ import { SearchDto } from 'src/dto/search.dto';
 export class userController {
   constructor(private readonly userService: userService) {}
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get('test')
   test() {
     return this.userService.test();
