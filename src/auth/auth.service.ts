@@ -65,9 +65,10 @@ export class AuthService {
       // httpOnly
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 1000 * 60 * 60,
+        path: '/',
       });
       res.json({ message: 'Login Successful' });
     }
