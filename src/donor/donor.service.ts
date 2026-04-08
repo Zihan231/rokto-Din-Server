@@ -31,6 +31,7 @@ export class DonorService {
     const donorExists = await this.donorRepo.findOne({
       where: { email: data.email },
     });
+
     if (donorExists) {
       throw new HttpException(
         'Donor with this email already exists',
@@ -38,8 +39,7 @@ export class DonorService {
       );
     }
 
-    // 1.5️⃣  VALIDATION: Check for at least one contact method
-    // We check if all three are falsy (null, undefined, or empty string)
+    // 1.5️⃣ VALIDATION: At least one contact method is required
     if (!data.phoneNumber && !data.whatsappNumber && !data.facebookLink) {
       throw new HttpException(
         'You must provide at least one contact method (Phone, WhatsApp, or Facebook).',
@@ -55,13 +55,29 @@ export class DonorService {
       );
     }
 
-    // 3️⃣ Hash the password
+    // 2.5️⃣ VALIDATION: lastDonation must not be a future date
+    let normalizedLastDonation: string | undefined = undefined;
+
+    if (data.lastDonation) {
+      const lastDonationObj = this.toDateOnly(data.lastDonation);
+      const today = this.toDateOnly(new Date());
+
+      if (lastDonationObj > today) {
+        throw new HttpException(
+          'Last donation date cannot be in the future. Please select today or a past date.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      normalizedLastDonation = this.toDbDateString(lastDonationObj);
+    }
+
+    // 3️⃣ Hash password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(data.password, salt);
 
     // 4️⃣ Create donor entity
-    const newDonor = this.donorRepo.create({
-      // ... rest of your code ...
+    const newDonor: Donor = this.donorRepo.create({
       fullName: data.fullName,
       email: data.email,
       password: hashedPassword,
@@ -71,13 +87,13 @@ export class DonorService {
       phoneNumber: data.phoneNumber,
       whatsappNumber: data.whatsappNumber,
       facebookLink: data.facebookLink,
-      lastDonation: data.lastDonation,
+      lastDonation: normalizedLastDonation,
       donationStatus: data.donationStatus ?? 'onn',
       totalDonation: data.totalDonation ?? 0,
     });
 
     // 5️⃣ Save to DB
-    const savedDonor = await this.donorRepo.save(newDonor);
+    const savedDonor: Donor = await this.donorRepo.save(newDonor);
 
     // 6️⃣ Remove password before returning
     const { password, ...donorWithoutPassword } = savedDonor;
