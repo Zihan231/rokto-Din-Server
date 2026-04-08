@@ -95,31 +95,68 @@ export class DonorService {
     donorId: number,
     recordData: donationRecordDto,
   ): Promise<object> {
-    // 1️⃣ Find the donor
     const donor = await this.donorRepo.findOne({ where: { id: donorId } });
     if (!donor) {
       throw new HttpException('Donor not found', HttpStatus.NOT_FOUND);
     }
 
-    // 2️⃣ Create record entity
+    const donationDateObj = this.toDateOnly(recordData.donationDate);
+    const today = this.toDateOnly(new Date());
+    const donationDateString = this.toDbDateString(donationDateObj);
+
+    // future date block
+    if (donationDateObj > today) {
+      throw new HttpException(
+        'Donation date cannot be in the future. Please select today or a past date.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const latestRecord = await this.recordRepo
+      .createQueryBuilder('record')
+      .where('record.donorId = :donorId', { donorId })
+      .orderBy('record.donationDate', 'DESC')
+      .getOne();
+
+    const lastDonationSource =
+      latestRecord?.donationDate ?? donor.lastDonation ?? null;
+
+    if (lastDonationSource) {
+      const lastDonationDateObj = this.toDateOnly(lastDonationSource);
+
+      // older or same date block
+      if (donationDateObj <= lastDonationDateObj) {
+        throw new HttpException(
+          `Donation date must be later than the last recorded donation date (${this.formatDate(lastDonationDateObj)}). Older or same-date entries are not allowed.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const nextAllowedDate = this.addMonths(lastDonationDateObj, 2);
+
+      // within 2 months block
+      if (donationDateObj < nextAllowedDate) {
+        throw new HttpException(
+          `You cannot add a new donation within 2 months of the last donation. Last donation was on ${this.formatDate(lastDonationDateObj)}. Next allowed date is ${this.formatDate(nextAllowedDate)}.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     const newRecord = this.recordRepo.create({
-      donationDate: recordData.donationDate,
+      donationDate: donationDateString,
       hospitalName: recordData.hospitalName,
       unitsDonated: recordData.unitsDonated,
       donor: donor,
     });
 
-    // 3️⃣ Save the Donation Record
     const savedRecord = await this.recordRepo.save(newRecord);
 
-    // 4️⃣ Update Donor's Total Donation Count (+1) & Save
     donor.totalDonation = (donor.totalDonation || 0) + 1;
-
-    donor.lastDonation = recordData.donationDate;
+    donor.lastDonation = donationDateString;
 
     await this.donorRepo.save(donor);
 
-    // 5️⃣ Return response
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Donation record created successfully',
@@ -275,5 +312,39 @@ export class DonorService {
       donorId: donor.id,
       currentStatus: donor.donationStatus,
     };
+  }
+
+  // Helper functions
+  private toDateOnly(value: string | Date): Date {
+    if (value instanceof Date) {
+      return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    }
+
+    const raw = String(value).split('T')[0];
+    const [year, month, day] = raw.split('-').map(Number);
+
+    return new Date(year, month - 1, day);
+  }
+
+  private addMonths(date: Date, months: number): Date {
+    const result = new Date(date);
+    result.setMonth(result.getMonth() + months);
+    return result;
+  }
+
+  private formatDate(date: Date): string {
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  private toDbDateString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }
