@@ -32,4 +32,9 @@ export class userController {
   search(@Body() query: SearchDto) {
     return this.userService.search(query);
   }
+  // Get total counts (donors & donations)
+  @Get('counts')
+  getTotalCounts() {
+    return this.userService.getTotalCounts();
+  }
 }

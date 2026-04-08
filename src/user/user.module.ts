@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contact } from '../Entity/contact.entity';
 import { Donor } from '../Entity/donor.entity';
 import { MailModule } from '../mail/mail.module';
+import { Record } from 'src/Entity/record.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Contact, Donor]), MailModule],
+  imports: [TypeOrmModule.forFeature([Contact, Donor, Record]), MailModule],
   controllers: [userController],
   providers: [userService],
 })

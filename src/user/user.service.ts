@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContactUsDto } from '../dto/contactUs.dto';
 import { SearchDto } from '../dto/search.dto';
@@ -9,6 +10,8 @@ import { Donor } from '../Entity/donor.entity';
 import { MailService } from '../mail/mail.service';
 import { Repository } from 'typeorm';
 import { LessThanOrEqual, IsNull } from 'typeorm';
+import { Record } from 'src/Entity/record.entity';
+
 @Injectable()
 export class userService {
   constructor(
@@ -16,6 +19,8 @@ export class userService {
     private contactRepo: Repository<Contact>,
     @InjectRepository(Donor)
     private donorRepo: Repository<Donor>,
+    @InjectRepository(Record)
+    private recordRepo: Repository<Record>,
     private readonly mailService: MailService,
   ) {}
   test() {
@@ -50,6 +55,7 @@ export class userService {
     };
   }
 
+  //  search
   async search(query: SearchDto): Promise<object> {
     const { bloodGroup, division, district, limit = 8, page = 1 } = query;
 
@@ -94,5 +100,28 @@ export class userService {
         totalPages: Math.ceil(total / Number(limit)),
       },
     };
+  }
+
+  //total counts(donors & donations)
+  async getTotalCounts(): Promise<object> {
+    try {
+      const totalDonors = await this.donorRepo.count();
+      const totalDonations = await this.recordRepo.count();
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Total counts fetched successfully',
+        data: {
+          totalDonors,
+          totalDonations,
+        },
+      };
+    } catch (error) {
+      console.error('Database error while fetching counts:', error);
+      throw new HttpException(
+        'Failed to fetch total counts',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
