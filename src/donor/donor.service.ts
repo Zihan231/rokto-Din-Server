@@ -104,7 +104,7 @@ export class DonorService {
     const today = this.toDateOnly(new Date());
     const donationDateString = this.toDbDateString(donationDateObj);
 
-    // future date block
+    // Future date not allowed
     if (donationDateObj > today) {
       throw new HttpException(
         'Donation date cannot be in the future. Please select today or a past date.',
@@ -112,32 +112,24 @@ export class DonorService {
       );
     }
 
-    const latestRecord = await this.recordRepo
-      .createQueryBuilder('record')
-      .where('record.donorId = :donorId', { donorId })
-      .orderBy('record.donationDate', 'DESC')
-      .getOne();
+    // Validate only against donor.lastDonation
+    if (donor.lastDonation) {
+      const lastDonationObj = this.toDateOnly(donor.lastDonation);
 
-    const lastDonationSource =
-      latestRecord?.donationDate ?? donor.lastDonation ?? null;
-
-    if (lastDonationSource) {
-      const lastDonationDateObj = this.toDateOnly(lastDonationSource);
-
-      // older or same date block
-      if (donationDateObj <= lastDonationDateObj) {
+      // Older or same date not allowed
+      if (donationDateObj <= lastDonationObj) {
         throw new HttpException(
-          `Donation date must be later than the last recorded donation date (${this.formatDate(lastDonationDateObj)}). Older or same-date entries are not allowed.`,
+          `Donation date must be later than the donor's last donation date (${this.formatDate(lastDonationObj)}). Older or same-date entries are not allowed.`,
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      const nextAllowedDate = this.addMonths(lastDonationDateObj, 2);
+      // Must wait at least 2 months
+      const nextAllowedDate = this.addMonths(lastDonationObj, 2);
 
-      // within 2 months block
       if (donationDateObj < nextAllowedDate) {
         throw new HttpException(
-          `You cannot add a new donation within 2 months of the last donation. Last donation was on ${this.formatDate(lastDonationDateObj)}. Next allowed date is ${this.formatDate(nextAllowedDate)}.`,
+          `You cannot add a new donation within 2 months of the last donation. Last donation was on ${this.formatDate(lastDonationObj)}. Next allowed date is ${this.formatDate(nextAllowedDate)}.`,
           HttpStatus.BAD_REQUEST,
         );
       }
