@@ -27,6 +27,11 @@ export class DonorService {
 
   // Create Donor
   async createDonor(data: CreateDonorDto): Promise<object> {
+    // 0️⃣ Format email to lowercase and remove accidental whitespace
+    if (data.email) {
+      data.email = data.email.toLowerCase().trim();
+    }
+
     // 1️⃣ Check if donor email already exists
     const donorExists = await this.donorRepo.findOne({
       where: { email: data.email },
@@ -79,7 +84,7 @@ export class DonorService {
     // 4️⃣ Create donor entity
     const newDonor: Donor = this.donorRepo.create({
       fullName: data.fullName,
-      email: data.email,
+      email: data.email, // This is now lowercase and trimmed
       password: hashedPassword,
       division: data.division,
       district: data.district,
@@ -234,12 +239,17 @@ export class DonorService {
 
   // Edit Profile
   async editProfile(donorId: number, data: editProfileDto): Promise<object> {
-    // 🚫 0️⃣ Check if body is empty
+    // 0️⃣ Check if body is empty
     if (!data || Object.keys(data).length === 0) {
       throw new HttpException(
         'No data provided to update',
         HttpStatus.BAD_REQUEST,
       );
+    }
+
+    // 0.5️⃣ Format email to lowercase and remove accidental whitespace if provided
+    if (data.email) {
+      data.email = data.email.toLowerCase().trim();
     }
 
     // 1️⃣ Find donor

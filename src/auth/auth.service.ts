@@ -23,6 +23,11 @@ export class AuthService {
   ) {}
   // login
   async login(data: LoginDto, res: Response): Promise<void> {
+    // 0️⃣ Format email to lowercase and remove accidental whitespace
+    if (data.email) {
+      data.email = data.email.toLowerCase().trim();
+    }
+
     const userExist = await this.donorRepo.findOne({
       where: { email: data.email },
       select: [
@@ -36,42 +41,51 @@ export class AuthService {
         'bloodGroup',
       ],
     });
+
     if (!userExist) {
       throw new HttpException(
         'Invalid email or password',
         HttpStatus.UNAUTHORIZED,
       );
     }
+
     const isPasswordValid = await bcrypt.compare(
       data.password,
       userExist.password,
     );
+
     if (!isPasswordValid) {
       throw new HttpException(
         'Invalid email or password',
         HttpStatus.UNAUTHORIZED,
       );
-    } else {
-      const payload = {
-        id: userExist.id,
-        email: userExist.email,
-        fullName: userExist.fullName,
-        totalDonation: userExist.totalDonation,
-        lastDonation: userExist.lastDonation,
-        donationStatus: userExist.donationStatus,
-        bloodGroup: userExist.bloodGroup,
-      };
-      const token = await this.jwtService.signAsync(payload);
-      // httpOnly
-      res.cookie('jwt', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60,
-        path: '/',
-      });
-      res.json({ message: 'Login Successful' });
     }
+
+    // 👇 Notice the `else {` is gone! Because the `if` above throws an error,
+    // the code will naturally stop there if the password is wrong anyway.
+
+    const payload = {
+      id: userExist.id,
+      email: userExist.email,
+      fullName: userExist.fullName,
+      totalDonation: userExist.totalDonation,
+      lastDonation: userExist.lastDonation,
+      donationStatus: userExist.donationStatus,
+      bloodGroup: userExist.bloodGroup,
+    };
+
+    const token = await this.jwtService.signAsync(payload);
+
+    // httpOnly
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60,
+      path: '/',
+    });
+
+    res.json({ message: 'Login Successful' });
   }
 
   // change pass
@@ -125,6 +139,11 @@ export class AuthService {
 
   // reset password
   async forgotPassword(data: forgotPassDto): Promise<object> {
+    // 0️⃣ Format email to lowercase and remove accidental whitespace
+    if (data.email) {
+      data.email = data.email.toLowerCase().trim();
+    }
+
     const { email } = data;
 
     // 1️⃣ Find user (Make sure to select 'password' now)
