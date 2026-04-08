@@ -23,7 +23,7 @@ import { MailModule } from './mail/mail.module';
         // database: configService.get<string>('DB_NAME'),
         url: configService.get<string>('DATABASE_URL'), //for neon
         autoLoadEntities: true,
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     DonorModule,
