@@ -166,7 +166,7 @@ export class AuthService {
     );
 
     // 4️⃣ Build reset link & Send email
-    const resetLink = `http://localhost:3001/reset-password?token=${resetToken}`;
+    const resetLink = `https://rokto-din.vercel.app/reset-password?token=${resetToken}`;
     await this.mailService.sendResetEmail(user.email, resetLink);
 
     return { message: 'If this email exists, a reset link has been sent' };

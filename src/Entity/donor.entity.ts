@@ -54,6 +54,9 @@ export class Donor {
   @Column({ type: 'int', nullable: true, default: 0 })
   totalDonation: number;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastResetRequest: Date;
+
   @OneToMany(() => Record, (record) => record.donor)
   donationRecords: Record[];
 }
