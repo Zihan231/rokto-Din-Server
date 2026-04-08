@@ -24,6 +24,12 @@ import { MailModule } from './mail/mail.module';
         url: configService.get<string>('DATABASE_URL'), //for neon
         autoLoadEntities: true,
         synchronize: true,
+        ssl: true,
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
       }),
     }),
     DonorModule,
