@@ -146,14 +146,34 @@ export class AuthService {
 
     const { email } = data;
 
-    // 1️⃣ Find user (Make sure to select 'password' now)
+    // 1️⃣ Find user (Include lastResetRequest in selection)
     const user = await this.donorRepo.findOne({
       where: { email },
-      select: ['id', 'email', 'password'], // 👈 Added 'password'
+      select: ['id', 'email', 'password', 'lastResetRequest'],
     });
 
     if (!user) {
+      // Return same message for security (enumeration protection)
       return { message: 'If this email exists, a reset link has been sent' };
+    }
+
+    // ⏳ 1.5️⃣ Cooldown Check: 3 Minutes
+    if (user.lastResetRequest) {
+      const now = new Date();
+      const lastRequest = new Date(user.lastResetRequest);
+      const diffInMs = now.getTime() - lastRequest.getTime();
+      const cooldownMs = 3 * 60 * 1000; // 3 minutes in milliseconds
+
+      if (diffInMs < cooldownMs) {
+        const secondsLeft = Math.ceil((cooldownMs - diffInMs) / 1000);
+        const minutes = Math.floor(secondsLeft / 60);
+        const seconds = secondsLeft % 60;
+
+        throw new HttpException(
+          `Please wait ${minutes}m ${seconds}s before requesting another link.`,
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
     }
 
     // 2️⃣ Create a dynamic secret unique to this user's current password state
@@ -162,12 +182,25 @@ export class AuthService {
     // 3️⃣ Generate short-lived JWT reset token using the dynamic secret
     const resetToken = this.jwtService.sign(
       { id: user.id },
-      { secret: dynamicSecret, expiresIn: '5m' }, // 👈 Use dynamicSecret
+      { secret: dynamicSecret, expiresIn: '5m' },
     );
 
     // 4️⃣ Build reset link & Send email
     const resetLink = `https://rokto-din.vercel.app/reset-password?token=${resetToken}`;
-    await this.mailService.sendResetEmail(user.email, resetLink);
+
+    try {
+      await this.mailService.sendResetEmail(user.email, resetLink);
+
+      // 5️⃣ Only update timestamp if email sent successfully
+      user.lastResetRequest = new Date();
+      await this.donorRepo.save(user);
+    } catch (error) {
+      console.error('Mail delivery failed:', error);
+      throw new HttpException(
+        'Failed to send reset email. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
 
     return { message: 'If this email exists, a reset link has been sent' };
   }
